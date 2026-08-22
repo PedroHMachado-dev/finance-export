@@ -1,0 +1,27 @@
+Data,Valor,Identificador,Descrição
+01/07/2026,1000.00,6a44e995-9de6-46bf-8434-8a1510f91ad8,Transferência recebida pelo Pix - CLIENTE EXEMPLO A - •••.000.000-•• - BANCO EXEMPLO (0341) Agência: 0001 Conta: 12345-6
+03/07/2026,2421.88,6a4766b5-4ace-44ba-98ef-aaaa9a9bcaf9,Transferência recebida pelo Pix - PAGADOR EXEMPLO B - •••.111.222-•• - BANCO EXEMPLO (0341) Agência: 0001 Conta: 65432-1
+03/07/2026,-1874.22,6a4766d3-dbbf-4c77-a60e-374b451b26aa,Pagamento de fatura
+03/07/2026,-107.79,6a476719-52a8-4464-b9b9-c822d5ee24b6,Transferência enviada pelo Pix - PAGAMENTOS DIGITAIS S A - 00.000.000/0001-00 - INSTITUICAO (0380) Agência: 1 Conta: 100000000-1
+03/07/2026,-89.99,6a476767-2a9c-4ce3-be67-eb25a7bb2f4b,Transferência enviada pelo Pix - SERVICO DE INTERNET S.A. - 00.000.000/0001-00 - BANCO (0001) Agência: 1000 Conta: 5000-0
+03/07/2026,-1117.61,6a476799-479f-4c4e-a7c0-a37a85166072,Aplicação RDB
+05/07/2026,-4.50,6a4a5de7-bec4-41b8-9517-1942943634d4,Transferência enviada pelo Pix - CONTRIBUICAO COMUNITARIA - 00.000.000/0001-00 - COOPERATIVA Agência: 100 Conta: 10000-0
+06/07/2026,600.00,6a4c38c4-e9e8-4e37-8f79-46ef8dcbd5c6,Transferência recebida pelo Pix - CLIENTE EXEMPLO C - •••.222.333-•• - BANCO EXEMPLO (0341) Agência: 0001 Conta: 78901-2
+06/07/2026,500.00,6a4c4a81-800e-4905-98c3-f3656d5912a1,Transferência recebida pelo Pix - CLIENTE EXEMPLO D - •••.333.444-•• - INSTITUICAO PAGAMENTO (0197) Agência: 1 Conta: 90000000-0
+11/07/2026,-20.00,6a5297a8-1468-4e1c-9a89-747b997b0f59,Transferência enviada pelo Pix - BENEFICIARIO EXEMPLO - •••.444.555-•• - BANCO FEDERAL (0104) Agência: 1000 Conta: 100000000000-0
+12/07/2026,-1075.50,6a536202-7c53-4198-987a-2e9eff9dfb57,Aplicação RDB
+12/07/2026,-4.50,6a539b49-4e89-49a9-b12a-7fdb304570a9,Transferência enviada pelo Pix - CONTRIBUICAO COMUNITARIA - 00.000.000/0001-00 - COOPERATIVA Agência: 100 Conta: 10000-0
+16/07/2026,-20.00,6a59720a-0168-4b71-8ee1-1ebbc8bc02fa,Transferência enviada pelo Pix - BENEFICIARIO EXEMPLO - •••.444.555-•• - BANCO FEDERAL (0104) Agência: 1000 Conta: 100000000000-0
+18/07/2026,1991.96,6a5b76c3-7d20-4863-828e-d760422e7d67,Transferência recebida pelo Pix - PAGADOR EXEMPLO B - •••.111.222-•• - BANCO EXEMPLO (0341) Agência: 0001 Conta: 65432-1
+18/07/2026,-2000.46,6a5b771f-53ad-40bb-9871-177d07990530,Aplicação RDB
+18/07/2026,-103.57,6a5bedfa-b871-4523-9066-de4ccdec7bf1,Transferência enviada pelo Pix - MERCADO EXEMPLO IP LTDA - 00.000.000/0001-00 - INSTITUICAO (0323) Agência: 1 Conta: 1000000000-0
+19/07/2026,-100.00,6a5cbf71-729a-4e16-8300-5e1e047b4680,Transferência enviada pelo Pix - CONTATO EXEMPLO - •••.555.666-•• - INSTITUICAO (0260) Agência: 1 Conta: 4000000-0
+19/07/2026,-4.50,6a5cd598-ee58-41ed-a16f-dc8f77faf56f,Transferência enviada pelo Pix - CONTRIBUICAO COMUNITARIA - 00.000.000/0001-00 - COOPERATIVA Agência: 100 Conta: 10000-0
+23/07/2026,-30.00,6a62827f-41da-4f3f-81bf-ebe49edee20e,Transferência enviada pelo Pix - FORNECEDOR EXEMPLO - •••.666.777-•• - BANCO DIGITAL (0077) Agência: 1 Conta: 30000000-0
+25/07/2026,-23.45,6a64de57-744e-4a78-8a73-22b324c8f688,Transferência enviada pelo Pix - SUPERMERCADO CENTRAL LJ01 - 00.000.000/0001-00 - COOPERATIVA Agência: 100 Conta: 80000-0
+25/07/2026,-4.50,6a65355a-835f-4c56-bea5-d05ed5768856,Transferência enviada pelo Pix - CONTRIBUICAO COMUNITARIA - 00.000.000/0001-00 - COOPERATIVA Agência: 100 Conta: 10000-0
+31/07/2026,980.00,6a6d3978-0c7e-4e91-96c3-a6fd3883ac6b,Transferência recebida pelo Pix - PAGADOR EXEMPLO B - •••.111.222-•• - BANCO EXEMPLO (0341) Agência: 0001 Conta: 65432-1
+31/07/2026,-675.73,6a6d398f-4b91-496f-b589-798c2d47a07f,Pagamento de fatura
+31/07/2026,-89.99,6a6d3aaa-a285-431f-ab60-92fddf235398,Transferência enviada pelo Pix - SERVICO DE INTERNET S.A. - 00.000.000/0001-00 - BANCO (0001) Agência: 1000 Conta: 5000-0
+31/07/2026,-96.70,6a6d3aed-077a-4f75-ad21-14fd136d8012,Transferência enviada pelo Pix - PAGAMENTOS DIGITAIS S A - 00.000.000/0001-00 - INSTITUICAO (0380) Agência: 1 Conta: 100000000-1
+31/07/2026,-99.90,6a6d3be1-009f-4794-8f02-c8c79abb6abf,Transferência enviada pelo Pix - MERCADO EXEMPLO IP LTDA - 00.000.000/0001-00 - INSTITUICAO (0323) Agência: 1 Conta: 1000000000-0
