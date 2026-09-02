@@ -5,7 +5,7 @@ import { formatCurrency } from '../utils/formatters';
 export default function SummaryCards({ summary, loading }) {
   if (loading && !summary) {
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         {[1, 2, 3].map((i) => (
           <div key={i} className="h-20 bg-slate-200 dark:bg-slate-800/60 rounded-2xl animate-pulse" />
         ))}
@@ -19,7 +19,7 @@ export default function SummaryCards({ summary, loading }) {
   const isPositive = balance >= 0;
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
       {/* Saldo Líquido */}
       <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm">
         <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Saldo Líquido</div>

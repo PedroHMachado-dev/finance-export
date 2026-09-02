@@ -4,8 +4,9 @@ echo ========================================================
 echo   Iniciando Frontend React na porta 5173...
 echo ========================================================
 
-set "PATH=C:\Program Files\nodejs;%PATH%"
-
 cd /d "%~dp0frontend"
-call "C:\Program Files\nodejs\npm.cmd" run dev
+where node >nul 2>&1 || (echo ERRO: Node.js 18 ou superior nao encontrado no PATH. & pause & exit /b 1)
+where npm >nul 2>&1 || (echo ERRO: npm nao encontrado no PATH. & pause & exit /b 1)
+if not exist node_modules call npm install
+call npm run dev
 pause

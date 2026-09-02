@@ -21,13 +21,26 @@ public class DashboardService {
 
     private final TransactionRepository transactionRepository;
 
-    public DashboardSummaryDTO getSummary(LocalDate startDate, LocalDate endDate) {
-        BigDecimal income = transactionRepository.sumByTypeAndPeriod(TransactionType.RECEITA, startDate, endDate);
-        BigDecimal expense = transactionRepository.sumByTypeAndPeriod(TransactionType.DESPESA, startDate, endDate);
-        long count = transactionRepository.countInPeriod(startDate, endDate);
+    public DashboardSummaryDTO getSummary(LocalDate startDate, LocalDate endDate, Long categoryId) {
+        List<Transaction> transactions = transactionRepository.findAllInPeriod(startDate, endDate);
 
-        if (income == null) income = BigDecimal.ZERO;
-        if (expense == null) expense = BigDecimal.ZERO;
+        BigDecimal income = transactions.stream()
+                .filter(t -> t.getType() == TransactionType.RECEITA)
+                .map(Transaction::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal expense = transactions.stream()
+                .filter(t -> t.getType() == TransactionType.DESPESA)
+                .filter(t -> !isInvestmentTransaction(t))
+                .filter(t -> categoryId == null || (t.getCategory() != null && categoryId.equals(t.getCategory().getId())))
+                .map(Transaction::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        long count = transactions.stream()
+                .filter(t -> t.getType() == TransactionType.RECEITA ||
+                        (t.getType() == TransactionType.DESPESA && !isInvestmentTransaction(t) &&
+                                (categoryId == null || (t.getCategory() != null && categoryId.equals(t.getCategory().getId())))))
+                .count();
 
         BigDecimal balance = income.subtract(expense);
 
@@ -44,6 +57,7 @@ public class DashboardService {
 
         List<Transaction> filtered = transactions.stream()
                 .filter(t -> t.getType() == type)
+                .filter(t -> type != TransactionType.DESPESA || !isInvestmentTransaction(t))
                 .toList();
 
         BigDecimal total = filtered.stream()
@@ -139,7 +153,7 @@ public class DashboardService {
      * Gráfico 1: Controle Mensal (Gastos Diários)
      * Separa com precisão Cartão de Crédito (compras e fatura) de Conta Corrente / Pix
      */
-    public List<DailyExpenseDTO> getDailyExpenses(LocalDate startDate, LocalDate endDate) {
+    public List<DailyExpenseDTO> getDailyExpenses(LocalDate startDate, LocalDate endDate, Long categoryId) {
         if (startDate == null) startDate = LocalDate.of(2026, 7, 1);
         if (endDate == null) endDate = LocalDate.of(2026, 7, 31);
 
@@ -157,12 +171,16 @@ public class DashboardService {
             // Gastos em Conta / Pix (excluindo os pagamentos de fatura e compras de cartão)
             BigDecimal accountExp = dayTxs.stream()
                     .filter(t -> t.getType() == TransactionType.DESPESA && !isCardRelatedTransaction(t))
+                    .filter(t -> !isInvestmentTransaction(t))
+                    .filter(t -> categoryId == null || (t.getCategory() != null && categoryId.equals(t.getCategory().getId())))
                     .map(Transaction::getAmount)
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
 
             // Gastos no Cartão (inclui compras de cartão e pagamentos de fatura)
             BigDecimal cardExp = dayTxs.stream()
                     .filter(t -> t.getType() == TransactionType.DESPESA && isCardRelatedTransaction(t))
+                    .filter(t -> !isInvestmentTransaction(t))
+                    .filter(t -> categoryId == null || (t.getCategory() != null && categoryId.equals(t.getCategory().getId())))
                     .map(Transaction::getAmount)
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
 
@@ -313,5 +331,9 @@ public class DashboardService {
             return desc.contains("APLICAÇÃO RDB") || desc.contains("APLICACAO RDB") || desc.contains("GUARDADO") || desc.contains("CAIXINHA");
         }
         return false;
+    }
+
+    private boolean isInvestmentTransaction(Transaction t) {
+        return isSavingsTransaction(t);
     }
 }

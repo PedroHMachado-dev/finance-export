@@ -21,9 +21,10 @@ public class DashboardController {
     @GetMapping("/summary")
     public ResponseEntity<DashboardSummaryDTO> getSummary(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            @RequestParam(required = false) Long categoryId
     ) {
-        return ResponseEntity.ok(dashboardService.getSummary(startDate, endDate));
+        return ResponseEntity.ok(dashboardService.getSummary(startDate, endDate, categoryId));
     }
 
     @GetMapping("/by-category")
@@ -48,9 +49,10 @@ public class DashboardController {
     @GetMapping("/daily-expenses")
     public ResponseEntity<List<DailyExpenseDTO>> getDailyExpenses(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            @RequestParam(required = false) Long categoryId
     ) {
-        return ResponseEntity.ok(dashboardService.getDailyExpenses(startDate, endDate));
+        return ResponseEntity.ok(dashboardService.getDailyExpenses(startDate, endDate, categoryId));
     }
 
     /**

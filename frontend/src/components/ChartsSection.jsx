@@ -87,11 +87,55 @@ export default function ChartsSection({
 
       {activeTab === 'all' ? (
         <div className="space-y-6">
-          {/* Gráfico 1: Controle Mensal (Área Interativa com Seletor) */}
-          <MonthlyAreaChart
-            data={dailyExpenses}
-            selectedPeriod={selectedPeriod}
-          />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
+            <MonthlyAreaChart
+              data={dailyExpenses}
+              selectedPeriod={selectedPeriod}
+            />
+
+            <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm">
+              <div className="flex items-center space-x-2 mb-4">
+                <div className="p-2 rounded-lg bg-rose-50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400">
+                  <PieIcon className="w-4 h-4" />
+                </div>
+                <div>
+                  <h4 className="font-bold text-slate-900 dark:text-slate-100 text-base">Despesas por Categoria</h4>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">Distribuição das despesas no período selecionado.</p>
+                </div>
+              </div>
+
+              {categoryData.length > 0 ? (
+                <div className="h-[350px] relative">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={categoryData}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={70}
+                        outerRadius={110}
+                        paddingAngle={3}
+                        dataKey="totalAmount"
+                        nameKey="categoryName"
+                      >
+                        {categoryData.map((entry, index) => (
+                          <Cell
+                            key={`overview-cell-${index}`}
+                            fill={entry.categoryColor || DEFAULT_COLORS[index % DEFAULT_COLORS.length]}
+                          />
+                        ))}
+                      </Pie>
+                      <Tooltip content={<CustomPieTooltip />} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              ) : (
+                <div className="h-[350px] flex items-center justify-center text-slate-400 text-xs">
+                  Nenhuma despesa no período.
+                </div>
+              )}
+            </div>
+          </div>
 
           {/* Grid com Gráficos 2 e 3 */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

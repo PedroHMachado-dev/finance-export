@@ -4,9 +4,8 @@ echo ========================================================
 echo   Iniciando Backend Spring Boot na porta 8080...
 echo ========================================================
 
-set "JAVA_HOME=C:\Program Files\Eclipse Adoptium\jdk-17.0.20.8-hotspot"
-set "PATH=C:\Program Files\Eclipse Adoptium\jdk-17.0.20.8-hotspot\bin;C:\Users\gobla\maven\bin;%PATH%"
-
 cd /d "%~dp0backend"
-call "C:\Users\gobla\maven\bin\mvn.cmd" spring-boot:run
+where java >nul 2>&1 || (echo ERRO: Java 17 ou superior nao encontrado no PATH. & pause & exit /b 1)
+where mvn >nul 2>&1 || (echo ERRO: Maven nao encontrado no PATH. & pause & exit /b 1)
+call mvn spring-boot:run
 pause

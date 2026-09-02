@@ -64,7 +64,7 @@ finance-export/
 │   └── package.json
 │
 ├── sample-files/           # Anonymized sample CSV files for testing
-│   ├── NU_783094859_01JUL2026_31JUL2026.csv   # Bank statement sample
+│   ├── nubank_extrato_exemplo.csv              # Bank statement sample
 │   └── NU_fatura_cartao_exemplo.csv           # Credit card invoice sample
 │
 ├── iniciar-tudo.bat        # 1-click Windows launcher (Backend + Frontend)
@@ -108,11 +108,11 @@ Ensure you have the following installed on your machine:
    ```sql
    CREATE DATABASE IF NOT EXISTS finance_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
    ```
-2. Configure your credentials in `backend/src/main/resources/application.properties` or set environment variables:
+2. Configure the environment variables required by `backend/src/main/resources/application.properties`:
    ```properties
-   spring.datasource.url=jdbc:mysql://localhost:3306/finance_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
-   spring.datasource.username=${SPRING_DATASOURCE_USERNAME:root}
-   spring.datasource.password=${SPRING_DATASOURCE_PASSWORD:your_password}
+   SPRING_DATASOURCE_URL=jdbc:mysql://HOST:3306/finance_db
+   SPRING_DATASOURCE_USERNAME=YOUR_DATABASE_USER
+   SPRING_DATASOURCE_PASSWORD=YOUR_DATABASE_PASSWORD
    ```
 
 ---
