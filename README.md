@@ -1,16 +1,18 @@
 # 💳 FinanceExport — Personal Finance & Statement Management System
 
+[![Version: 0.3.0](https://img.shields.io/badge/version-0.3.0-blue.svg)](CHANGELOG.md)
 [![Java 17](https://img.shields.io/badge/Java-17-orange.svg)](https://adoptium.net/)
 [![Spring Boot 3](https://img.shields.io/badge/Spring%20Boot-3.2.5-brightgreen.svg)](https://spring.io/projects/spring-boot)
 [![React](https://img.shields.io/badge/React-18-blue.svg)](https://react.dev/)
 [![Vite](https://img.shields.io/badge/Vite-5.4-purple.svg)](https://vitejs.dev/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-3.4-38B2AC.svg)](https://tailwindcss.com/)
 [![MySQL 8.0](https://img.shields.io/badge/MySQL-8.0-4479A1.svg)](https://www.mysql.com/)
+[![Docker](https://img.shields.io/badge/Docker-Compose-2496ED.svg)](https://www.docker.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 A modern, full-stack personal finance application built to import, parse, intelligently categorize, and visualize banking transactions from **bank statements** and **credit card invoices (CSV format)**.
 
-Designed with a clean, minimalist user interface featuring an interactive **React Bits Dock**, rich **Recharts** data visualizations, dark mode support, and an enterprise-grade **Java Spring Boot 3 + MySQL** backend.
+Designed with a clean, responsive user interface featuring an interactive sidebar, rich **Recharts** data visualizations, dark mode support, and an enterprise-grade **Java Spring Boot 3 + MySQL** backend.
 
 ---
 
@@ -21,15 +23,16 @@ Designed with a clean, minimalist user interface featuring an interactive **Reac
   - Supports Brazilian currency formatting (`R$ 1.234,56`), multiple date patterns (`dd/MM/yyyy`, `yyyy-MM-dd`), refunds (negative values), and installments.
 - 🛡️ **Deduplication Engine**:
   - Prevents duplicate entries when importing overlapping statement periods via deterministic identifier hashing and uniqueness verification.
-- 🏷️ **Smart Auto-Categorization**:
+- 🏷️ **Smart Auto-Categorization & Interactive Filters**:
   - Rule-based keyword engine that associates transactions with categories (*Pix Transfers, Salary, Groceries, Dining, Ride-sharing/Uber, Subscriptions, Investments/RDB, Utilities, Credit Card Payments*).
+  - Click any category in the Donut Chart to filter the entire dashboard by that category.
 - 📊 **Interactive Data Visualizations**:
-  - **Chart 1 — Monthly Cash Flow (`MonthlyAreaChart`)**: Interactive daily area chart comparing **Incomes** (Green), **Bank Debits** (Red), and **Credit Card Expenses** (Purple) with flexible period selectors (7d, 30d, 90d, all) and rich hover tooltips.
-  - **Chart 2 — Weekly Consumption Pattern (`WeeklyLineChart`)**: Day-of-week analysis (Monday to Sunday) with toggleable header cards to isolate credit card versus direct bank debits.
-  - **Chart 3 — Savings & Goals Tracker (`SavingsTrendChart`)**: Tracks monthly allocations to reserve funds (*Caixinhas / RDB*) and calculates month-over-month growth percentage (`+X%`) and cumulative totals.
-  - **Category Breakdown (`PieChart`)**: Clean donut chart showcasing the relative percentage of expenses.
-- ⚓ **macOS-Style Dock Navigation**:
-  - Floating bottom navigation bar integrated from **React Bits** using **Motion** with smooth spring magnification, tooltips, and active page indicators.
+  - **Chart 1 — Monthly Cash Flow (`MonthlyAreaChart`)**: Interactive daily area chart comparing **Incomes** (Green) and **Expenses** (Red), with click-to-view day details (`DayMovementsDialog`).
+  - **Chart 2 — Weekly Consumption Pattern (`WeeklyLineChart`)**: Day-of-week analysis (Monday to Sunday) with toggleable cards for credit card versus direct bank debits.
+  - **Chart 3 — Savings & Goals Tracker (`SavingsTrendChart`)**: Tracks monthly allocations to reserve funds (*Caixinhas / RDB*) and calculates month-over-month growth percentage (`+X%`).
+  - **Category Breakdown (`PieChart`)**: Clean donut chart positioned side-by-side with cash flow on large screens.
+- 🧭 **Responsive Sidebar & Navigation**:
+  - Minimizable sidebar (collapsible between 72px and 288px) with persistence in `localStorage`, mobile drawer, and dedicated Changelog page.
 - 🌓 **Dark & Light Mode**:
   - Full theme switching with automatic system detection and persistent preference in `localStorage`.
 - 📝 **Transaction Management**:
@@ -50,106 +53,115 @@ finance-export/
 │   │   ├── parser/         # CSV statement parsers (Account & Credit Card)
 │   │   ├── repository/     # Spring Data JPA Repositories
 │   │   └── service/        # Business logic & KPI aggregations
+│   ├── Dockerfile          # Multi-stage Docker build for Spring Boot
 │   └── src/main/resources/ # application.properties
 │
 ├── frontend/               # React 18 + Vite Single Page Application
 │   ├── src/
 │   │   ├── api/            # Axios API client
-│   │   ├── components/     # UI Components, Cards, Modals, Tables
-│   │   │   ├── charts/     # Specialized Recharts components
-│   │   │   ├── Dock/       # React Bits Dock component (Motion)
-│   │   │   └── ui/         # Reusable Shadcn-style primitives
+│   │   ├── components/     # UI Components, Cards, Modals, Tables, Charts, Sidebar
 │   │   ├── context/        # ThemeContext (Dark/Light mode)
 │   │   └── utils/          # Currency & Date formatters
+│   ├── Dockerfile          # Multi-stage Docker build for React + Nginx
+│   ├── nginx.conf          # Nginx reverse proxy configuration
 │   └── package.json
 │
 ├── sample-files/           # Anonymized sample CSV files for testing
 │   ├── nubank_extrato_exemplo.csv              # Bank statement sample
 │   └── NU_fatura_cartao_exemplo.csv           # Credit card invoice sample
 │
-├── iniciar-tudo.bat        # 1-click Windows launcher (Backend + Frontend)
-├── iniciar-backend.bat     # Backend launcher
-├── iniciar-frontend.bat    # Frontend launcher
+├── CHANGELOG.md            # Release notes and version history
+├── docker-compose.yml      # Orchestrates MySQL 8, Backend, and Frontend
+├── iniciar-docker.bat      # 1-click Docker launcher for Windows
+├── iniciar-tudo.bat        # 1-click Windows launcher (Local dev)
+├── iniciar-backend.bat     # Backend local launcher
+├── iniciar-frontend.bat    # Frontend local launcher
 └── README.md
 ```
 
-### Backend
-- **Java 17** (Eclipse Temurin)
-- **Spring Boot 3.2.5** (Web, Data JPA, Validation)
-- **MySQL 8.0** Connector / HikariCP
-- **Lombok**
-- **JUnit 5**
+---
 
-### Frontend
-- **React 18** + **Vite**
-- **Tailwind CSS**
-- **Motion / Framer Motion** (React Bits Dock)
-- **Recharts**
-- **Lucide React**
-- **Axios**
+## 🚀 Quick Start with Docker (Recommended)
+
+The easiest way to run the entire system on **any computer (Windows, macOS, Linux)** without installing Java, Maven, Node.js, or MySQL:
+
+### 1. Prerequisites
+- Install **[Docker Desktop](https://www.docker.com/products/docker-desktop/)** and ensure it is running.
+
+### 2. Run with One Command
+
+Open your terminal in the project directory:
+
+```bash
+docker compose up -d --build
+```
+
+*(On Windows, you can also simply double-click **`iniciar-docker.bat`**)*
+
+### 3. Access the Application
+
+| Service | URL | Notes |
+|---|---|---|
+| **Web Frontend** | **`http://localhost:5173`** or **`http://localhost`** | Ready to use in your browser |
+| **Backend REST API** | **`http://localhost:8080/api`** | API documentation and endpoints |
+| **MySQL Database** | **`localhost:3307`** | User: `root` \| Password: `root` \| DB: `finance_db` |
+
+### Useful Docker Commands
+
+```bash
+# View live logs from all services
+docker compose logs -f
+
+# View logs from a specific service (e.g. backend)
+docker compose logs -f backend
+
+# Check container status
+docker compose ps
+
+# Stop all services (data is preserved in the Docker volume)
+docker compose down
+
+# Stop and delete the database volume (reset all data)
+docker compose down -v
+```
 
 ---
 
-## 🚀 Getting Started
+## 🛠️ Alternative: Manual Local Setup (Without Docker)
+
+If you prefer to run the project directly on your machine without Docker:
 
 ### Prerequisites
-
-Ensure you have the following installed on your machine:
 - **Java JDK 17+**
 - **Apache Maven 3.8+**
 - **Node.js 18+** & **npm**
 - **MySQL Server 8.0+**
 
----
-
 ### 1. Database Setup
+Create the database in MySQL:
+```sql
+CREATE DATABASE IF NOT EXISTS finance_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+```
 
-1. Open your MySQL client (e.g., MySQL Workbench or MySQL CLI):
-   ```sql
-   CREATE DATABASE IF NOT EXISTS finance_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-   ```
-2. Configure the environment variables required by `backend/src/main/resources/application.properties`:
-   ```properties
-   SPRING_DATASOURCE_URL=jdbc:mysql://HOST:3306/finance_db
-   SPRING_DATASOURCE_USERNAME=YOUR_DATABASE_USER
-   SPRING_DATASOURCE_PASSWORD=YOUR_DATABASE_PASSWORD
-   ```
-
----
+*(Optional)* If your local MySQL credentials differ from `root`/`root`, set environment variables:
+```properties
+SPRING_DATASOURCE_URL=jdbc:mysql://localhost:3306/finance_db
+SPRING_DATASOURCE_USERNAME=your_user
+SPRING_DATASOURCE_PASSWORD=your_password
+```
 
 ### 2. Running the Backend
-
-Navigate to the `backend` folder and run with Maven:
-
 ```bash
 cd backend
 mvn spring-boot:run
 ```
 
-The REST API will be available at: **`http://localhost:8080/api`**
-
----
-
 ### 3. Running the Frontend
-
-Navigate to the `frontend` folder, install dependencies, and start the development server:
-
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
-
-The Web Application will be available at: **`http://localhost:5173`**
-
----
-
-### 4. 1-Click Launchers (Windows)
-
-For convenience on Windows environments, pre-configured launcher scripts are provided:
-- **`iniciar-tudo.bat`**: Launches both Backend and Frontend in separate windows simultaneously.
-- **`iniciar-backend.bat`**: Starts only the Spring Boot backend.
-- **`iniciar-frontend.bat`**: Starts only the Vite frontend dev server.
 
 ---
 
@@ -162,8 +174,8 @@ For convenience on Windows environments, pre-configured launcher scripts are pro
 | `POST` | `/api/transactions` | Creates a new manual transaction |
 | `PUT` | `/api/transactions/{id}` | Updates an existing transaction |
 | `DELETE` | `/api/transactions/{id}` | Deletes a transaction |
-| `GET` | `/api/dashboard/summary` | Returns total income, total expense, net balance, and count |
-| `GET` | `/api/dashboard/daily-expenses` | Daily spending breakdown (Account vs Card vs Incomes) |
+| `GET` | `/api/dashboard/summary` | Returns total income, total expense, net balance, and count (supports optional `categoryId`) |
+| `GET` | `/api/dashboard/daily-expenses` | Daily spending breakdown (Account vs Card vs Incomes, supports optional `categoryId`) |
 | `GET` | `/api/dashboard/weekly-expenses` | Day-of-week spending distribution (Monday to Sunday) |
 | `GET` | `/api/dashboard/savings-trend` | Monthly savings breakdown for reserve funds (*Caixinhas / RDB*) |
 | `GET` | `/api/dashboard/by-category` | Category expense summary with relative percentages |

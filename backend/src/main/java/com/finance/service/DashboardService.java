@@ -154,10 +154,22 @@ public class DashboardService {
      * Separa com precisão Cartão de Crédito (compras e fatura) de Conta Corrente / Pix
      */
     public List<DailyExpenseDTO> getDailyExpenses(LocalDate startDate, LocalDate endDate, Long categoryId) {
-        if (startDate == null) startDate = LocalDate.of(2026, 7, 1);
-        if (endDate == null) endDate = LocalDate.of(2026, 7, 31);
-
         List<Transaction> transactions = transactionRepository.findAllInPeriod(startDate, endDate);
+
+        if (startDate == null || endDate == null) {
+            if (!transactions.isEmpty()) {
+                LocalDate latestDate = transactions.stream()
+                        .map(Transaction::getDate)
+                        .max(LocalDate::compareTo)
+                        .orElse(LocalDate.now());
+                startDate = latestDate.withDayOfMonth(1);
+                endDate = latestDate.withDayOfMonth(latestDate.lengthOfMonth());
+            } else {
+                LocalDate now = LocalDate.now();
+                startDate = now.withDayOfMonth(1);
+                endDate = now.withDayOfMonth(now.lengthOfMonth());
+            }
+        }
 
         List<DailyExpenseDTO> dailyList = new ArrayList<>();
         LocalDate curr = startDate;

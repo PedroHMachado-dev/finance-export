@@ -1,0 +1,75 @@
+services:
+  # ========================================================
+  # Banco de Dados MySQL 8.0
+  # ========================================================
+  db:
+    image: mysql:8.0
+    container_name: finance_db
+    restart: unless-stopped
+    command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    environment:
+      MYSQL_DATABASE: finance_db
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3307:3306"
+    volumes:
+      - finance_mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+    networks:
+      - finance_network
+
+  # ========================================================
+  # Backend Spring Boot 3 (Java 17)
+  # ========================================================
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: finance_backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/finance_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+      SERVER_PORT: 8080
+    ports:
+      - "8080:8080"
+    networks:
+      - finance_network
+
+  # ========================================================
+  # Frontend React (Vite + Nginx)
+  # ========================================================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: finance_frontend
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_started
+    ports:
+      - "80:80"
+      - "5173:80"
+    networks:
+      - finance_network
+
+volumes:
+  # Volume persistente para os dados do MySQL
+  finance_mysql_data:
+    name: finance_mysql_data
+
+networks:
+  # Rede isolada compartilhada entre os containers
+  finance_network:
+    name: finance_network
+    driver: bridge

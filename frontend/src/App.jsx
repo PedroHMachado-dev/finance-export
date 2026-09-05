@@ -8,6 +8,7 @@ import { MonthlyAreaChart } from './components/charts/MonthlyAreaChart';
 import { WeeklyLineChart } from './components/charts/WeeklyLineChart';
 import { SavingsTrendChart } from './components/charts/SavingsTrendChart';
 import Sidebar from './components/Sidebar';
+import ReleaseNotes from './components/ReleaseNotes';
 import { ThemeProvider } from './context/ThemeContext';
 import { financeApi } from './api/client';
 import {
@@ -29,9 +30,6 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   ScrollText,
-  Sparkles,
-  Wrench,
-  ShieldCheck,
   X,
   CalendarRange,
 } from 'lucide-react';
@@ -130,6 +128,8 @@ function DayMovementsDialog({ details, onClose }) {
 function GlobalPeriodFilter({ value, onChange }) {
   const labels = {
     ALL: 'Todo o período',
+    '2026-09': 'Setembro / 2026',
+    '2026-08': 'Agosto / 2026',
     '2026-07': 'Julho / 2026',
     '2026-06': 'Junho / 2026',
     '2026-05': 'Maio / 2026',
@@ -146,6 +146,8 @@ function GlobalPeriodFilter({ value, onChange }) {
         </SelectTrigger>
         <SelectContent className="min-w-[170px]">
           <SelectItem value="ALL">Todo o período</SelectItem>
+          <SelectItem value="2026-09">Setembro / 2026</SelectItem>
+          <SelectItem value="2026-08">Agosto / 2026</SelectItem>
           <SelectItem value="2026-07">Julho / 2026</SelectItem>
           <SelectItem value="2026-06">Junho / 2026</SelectItem>
           <SelectItem value="2026-05">Maio / 2026</SelectItem>
@@ -593,48 +595,7 @@ function MainContent() {
           </div>
         )}
 
-        {activeTab === 'changelog' && (
-          <div className="animate-in fade-in duration-300">
-            <div className="overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
-              <div className="border-b border-slate-200/80 bg-gradient-to-br from-emerald-50 via-white to-cyan-50 px-6 py-8 dark:border-slate-800 dark:from-emerald-950/40 dark:via-slate-900 dark:to-cyan-950/30 sm:px-10">
-                <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
-                  <div>
-                    <div className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-emerald-600 dark:text-emerald-400"><Sparkles className="h-4 w-4" /> Release notes</div>
-                    <div className="flex flex-wrap items-center gap-3">
-                      <h1 className="text-3xl font-black tracking-tight text-slate-950 dark:text-white">FinanceExport v0.2.0</h1>
-                      <span className="rounded-full border border-emerald-200 bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">Versão provisória</span>
-                    </div>
-                    <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600 dark:text-slate-300">Atualização focada em análise financeira interativa, navegação mais eficiente e melhor aproveitamento do espaço.</p>
-                  </div>
-                  <time className="shrink-0 text-sm font-semibold text-slate-500 dark:text-slate-400">2 de setembro de 2026</time>
-                </div>
-              </div>
-
-              <div className="grid gap-8 px-6 py-8 sm:px-10 lg:grid-cols-[180px_1fr]">
-                <div><span className="inline-flex items-center gap-2 rounded-xl bg-emerald-50 px-3 py-2 text-sm font-bold text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300"><Sparkles className="h-4 w-4" /> Adicionado</span></div>
-                <ul className="list-disc space-y-3 pl-5 text-sm leading-6 text-slate-600 marker:text-emerald-500 dark:text-slate-300">
-                  <li>Sidebar responsiva, minimizável e com navegação móvel.</li>
-                  <li>Filtro interativo por categoria integrado aos gráficos e indicadores.</li>
-                  <li>Detalhamento das movimentações ao clicar em uma data do gráfico.</li>
-                </ul>
-
-                <div><span className="inline-flex items-center gap-2 rounded-xl bg-cyan-50 px-3 py-2 text-sm font-bold text-cyan-700 dark:bg-cyan-950/40 dark:text-cyan-300"><Wrench className="h-4 w-4" /> Melhorado</span></div>
-                <ul className="list-disc space-y-3 pl-5 text-sm leading-6 text-slate-600 marker:text-cyan-500 dark:text-slate-300">
-                  <li>Layout e gráficos responsivos para aproveitar monitores maiores.</li>
-                  <li>Comparativo principal simplificado para receitas versus despesas.</li>
-                  <li>Gráfico por categoria posicionado ao lado do fluxo financeiro.</li>
-                  <li>Alternância consistente entre temas claro e escuro.</li>
-                </ul>
-
-                <div><span className="inline-flex items-center gap-2 rounded-xl bg-violet-50 px-3 py-2 text-sm font-bold text-violet-700 dark:bg-violet-950/40 dark:text-violet-300"><ShieldCheck className="h-4 w-4" /> Regras</span></div>
-                <ul className="list-disc space-y-3 pl-5 text-sm leading-6 text-slate-600 marker:text-violet-500 dark:text-slate-300">
-                  <li>Investimentos, RDB e caixinhas não são contabilizados como despesas.</li>
-                  <li>Importações permanecem protegidas contra lançamentos duplicados.</li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        )}
+        {activeTab === 'changelog' && <ReleaseNotes />}
       </main>
 
       <footer className="w-full border-t border-slate-200/80 dark:border-slate-800/80 bg-white/60 dark:bg-slate-950/60 backdrop-blur-sm">
@@ -644,7 +605,7 @@ function MainContent() {
             <span className="font-bold text-slate-700 dark:text-slate-200">FinanceExport</span>
             {' '}· © {new Date().getFullYear()}
           </p>
-          <button type="button" onClick={() => setActiveTab('changelog')} className="rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 font-bold text-emerald-700 transition-colors hover:bg-emerald-100 dark:border-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-300 dark:hover:bg-emerald-900/60">v0.2.0</button>
+          <button type="button" onClick={() => setActiveTab('changelog')} className="rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 font-bold text-emerald-700 transition-colors hover:bg-emerald-100 dark:border-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-300 dark:hover:bg-emerald-900/60">v0.3.0</button>
           </div>
         </div>
       </footer>

@@ -12,6 +12,8 @@ export default function FilterBar({
 }) {
   const periods = [
     { value: 'ALL', label: 'Todo o Período' },
+    { value: '2026-09', label: 'Setembro / 2026' },
+    { value: '2026-08', label: 'Agosto / 2026' },
     { value: '2026-07', label: 'Julho / 2026' },
     { value: '2026-06', label: 'Junho / 2026' },
     { value: '2026-05', label: 'Maio / 2026' },
