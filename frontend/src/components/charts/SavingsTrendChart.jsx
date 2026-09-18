@@ -1,6 +1,6 @@
 import * as React from "react";
 import { TrendingUp, TrendingDown, PiggyBank, Target, ShieldCheck } from "lucide-react";
-import { CartesianGrid, Line, LineChart, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts";
+import { CartesianGrid, Bar, BarChart, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts";
 import {
   Card,
   CardContent,
@@ -36,8 +36,8 @@ const CustomSavingsTooltip = ({ active, payload, label }) => {
             <span className="font-bold">{formatCurrency(savedVal)}</span>
           </div>
 
-          <div className="flex items-center justify-between text-indigo-300">
-            <span>Total Acumulado:</span>
+          <div className="flex items-center justify-between text-emerald-500">
+            <span>Guardado nas Caixinhas:</span>
             <span className="font-bold">{formatCurrency(cumVal)}</span>
           </div>
 
@@ -61,7 +61,7 @@ const CustomSavingsTooltip = ({ active, payload, label }) => {
   return null;
 };
 
-export function SavingsTrendChart({ data = [] }) {
+export function SavingsTrendChart({ data = [], compact = false }) {
   const activeMonths = data.filter((d) => d.savedThisMonth > 0);
   const currentMonthData = activeMonths.length > 0 ? activeMonths[activeMonths.length - 1] : null;
   const growth = currentMonthData ? currentMonthData.growthPercentage : 0;
@@ -71,35 +71,47 @@ export function SavingsTrendChart({ data = [] }) {
     return data.reduce((acc, curr) => acc + (curr.savedThisMonth || 0), 0);
   }, [data]);
 
+  // No modo compacto (ao lado do gráfico semanal), mostra só os meses com movimentação
+  // mais recentes, para não espremer as barras nem prejudicar o gráfico vizinho.
+  const chartData = React.useMemo(() => {
+    if (!compact) return data;
+    const relevant = data.filter((d) => (d.savedThisMonth || 0) > 0 || (d.cumulativeTotal || 0) > 0);
+    return relevant.slice(-6);
+  }, [data, compact]);
+
   return (
-    <Card className="overflow-hidden border border-slate-200/80 dark:border-slate-800 shadow-sm">
-      <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 py-4 px-6 bg-slate-50/50 dark:bg-slate-900/50">
+    <Card className="overflow-hidden border border-slate-200/80 dark:border-slate-800 shadow-sm h-full flex flex-col">
+      <CardHeader className={`flex flex-col gap-3 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 ${compact ? 'py-3 px-4' : 'py-4 px-6 sm:flex-row sm:items-center sm:justify-between'}`}>
         <div>
           <div className="flex items-center gap-2">
             <div className="p-1.5 rounded-lg bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
               <PiggyBank className="w-4 h-4" />
             </div>
-            <CardTitle>Gráfico 3: Comparativo Dinheiro Guardado (Caixinhas)</CardTitle>
+            <CardTitle>Caixinhas</CardTitle>
           </div>
-          <CardDescription className="mt-1">
-            Acompanhe o ritmo de aportes e compare o quanto você guardou neste mês vs mês passado.
-          </CardDescription>
+          {!compact && (
+            <CardDescription className="mt-1">
+              Compare o quanto você guardou em cada mês com o total já acumulado nas caixinhas.
+            </CardDescription>
+          )}
         </div>
 
-        <div className="text-right">
-          <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium block">Total Acumulado Guardado</span>
+        <div className={compact ? '' : 'text-right'}>
+          <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium block">Total Guardado</span>
           <span className="text-lg font-extrabold text-emerald-600 dark:text-emerald-400">
             {formatCurrency(totalSavedYear)}
           </span>
         </div>
       </CardHeader>
 
-      <CardContent className="px-3 pt-6 sm:px-6">
-        <div className="h-[280px] w-full">
+      <CardContent className={compact ? 'px-2 pt-4' : 'px-3 pt-6 sm:px-6'}>
+        <div className={compact ? 'h-[240px] w-full' : 'h-[280px] w-full'}>
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart
-              data={data}
+            <BarChart
+              data={chartData}
               margin={{ left: -15, right: 15, top: 10, bottom: 0 }}
+              barGap={4}
+              barCategoryGap={compact ? '20%' : '28%'}
             >
               <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="#94a3b8" strokeOpacity={0.2} />
               <XAxis
@@ -123,57 +135,53 @@ export function SavingsTrendChart({ data = [] }) {
               {/* Tooltip Interativo no Hover */}
               <Tooltip
                 content={<CustomSavingsTooltip />}
-                cursor={{ stroke: '#10B981', strokeWidth: 1.5, strokeDasharray: '4 4' }}
+                cursor={{ fill: '#10B981', fillOpacity: 0.08 }}
               />
 
-              <Line
+              <Bar
                 dataKey="savedThisMonth"
-                name="Aporte no Mês"
-                type="monotone"
-                stroke="#10B981"
-                strokeWidth={3}
-                dot={{ r: 5, fill: "#10B981", strokeWidth: 2, stroke: "#fff" }}
-                activeDot={{ r: 7, strokeWidth: 0 }}
+                name="Guardado no Mês"
+                fill="#6EE7B7"
+                radius={[4, 4, 0, 0]}
               />
-              <Line
+              <Bar
                 dataKey="cumulativeTotal"
-                name="Total Acumulado"
-                type="monotone"
-                stroke="#6366F1"
-                strokeWidth={2.5}
-                strokeDasharray="4 4"
-                dot={{ r: 3, fill: "#6366F1" }}
+                name="Total nas Caixinhas"
+                fill="#047857"
+                radius={[4, 4, 0, 0]}
               />
-            </LineChart>
+            </BarChart>
           </ResponsiveContainer>
         </div>
       </CardContent>
 
-      <CardFooter className="border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 py-3.5 px-6">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between w-full gap-2 text-xs">
-          <div className="flex items-center gap-2 font-semibold">
-            {isPositiveGrowth ? (
-              <span className="inline-flex items-center text-emerald-700 bg-emerald-100/80 dark:bg-emerald-950 dark:text-emerald-300 px-2.5 py-1 rounded-lg border border-emerald-300/60 dark:border-emerald-800">
-                <TrendingUp className="h-3.5 w-3.5 mr-1 text-emerald-600 dark:text-emerald-400" />
-                Variação de +{growth.toFixed(1)}% este mês
+      {!compact && (
+        <CardFooter className="border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 py-3.5 px-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between w-full gap-2 text-xs">
+            <div className="flex items-center gap-2 font-semibold">
+              {isPositiveGrowth ? (
+                <span className="inline-flex items-center text-emerald-700 bg-emerald-100/80 dark:bg-emerald-950 dark:text-emerald-300 px-2.5 py-1 rounded-lg border border-emerald-300/60 dark:border-emerald-800">
+                  <TrendingUp className="h-3.5 w-3.5 mr-1 text-emerald-600 dark:text-emerald-400" />
+                  Variação de +{growth.toFixed(1)}% este mês
+                </span>
+              ) : (
+                <span className="inline-flex items-center text-rose-700 bg-rose-100/80 dark:bg-rose-950 dark:text-rose-300 px-2.5 py-1 rounded-lg border border-rose-300/60 dark:border-rose-800">
+                  <TrendingDown className="h-3.5 w-3.5 mr-1 text-rose-600 dark:text-rose-400" />
+                  Variação de {growth.toFixed(1)}% este mês
+                </span>
+              )}
+              <span className="text-slate-600 dark:text-slate-300 font-normal">
+                {currentMonthData ? `Último aporte em ${currentMonthData.monthLabel}: ${formatCurrency(currentMonthData.savedThisMonth)}` : "Aguardando extrato de investimentos"}
               </span>
-            ) : (
-              <span className="inline-flex items-center text-rose-700 bg-rose-100/80 dark:bg-rose-950 dark:text-rose-300 px-2.5 py-1 rounded-lg border border-rose-300/60 dark:border-rose-800">
-                <TrendingDown className="h-3.5 w-3.5 mr-1 text-rose-600 dark:text-rose-400" />
-                Variação de {growth.toFixed(1)}% este mês
-              </span>
-            )}
-            <span className="text-slate-600 dark:text-slate-300 font-normal">
-              {currentMonthData ? `Último aporte em ${currentMonthData.monthLabel}: ${formatCurrency(currentMonthData.savedThisMonth)}` : "Aguardando extrato de investimentos"}
-            </span>
-          </div>
+            </div>
 
-          <div className="flex items-center space-x-1.5 text-slate-500 dark:text-slate-400">
-            <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
-            <span>Contabiliza Aplicações RDB, Caixinhas e Poupança</span>
+            <div className="flex items-center space-x-1.5 text-slate-500 dark:text-slate-400">
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
+              <span>Contabiliza Aplicações RDB, Caixinhas e Poupança</span>
+            </div>
           </div>
-        </div>
-      </CardFooter>
+        </CardFooter>
+      )}
     </Card>
   );
 }

@@ -20,8 +20,7 @@ import {
 } from 'recharts';
 import {
   LayoutDashboard,
-  CreditCard,
-  PiggyBank,
+  BarChart3,
   FileSpreadsheet,
   Plus,
   UploadCloud,
@@ -32,6 +31,7 @@ import {
   ScrollText,
   X,
   CalendarRange,
+  Github,
 } from 'lucide-react';
 import { formatCurrency } from './utils/formatters';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './components/ui/Select';
@@ -45,7 +45,12 @@ const DEFAULT_COLORS = [
 function DayMovementsDialog({ details, onClose }) {
   if (!details) return null;
 
-  const formattedDate = details.date.split('-').reverse().join('/');
+  const isWeekday = details.mode === 'weekday';
+  const title = isWeekday ? details.label : details.date.split('-').reverse().join('/');
+  const subtitle = isWeekday ? 'Movimentações do dia da semana' : 'Movimentações do dia';
+  const emptyMessage = isWeekday
+    ? 'Nenhuma movimentação encontrada para este dia da semana no período.'
+    : 'Nenhuma movimentação encontrada neste dia.';
   const income = details.transactions
     .filter((transaction) => transaction.type === 'RECEITA')
     .reduce((total, transaction) => total + Number(transaction.amount || 0), 0);
@@ -61,7 +66,7 @@ function DayMovementsDialog({ details, onClose }) {
       <div
         role="dialog"
         aria-modal="true"
-        aria-label={`Movimentações de ${formattedDate}`}
+        aria-label={`Movimentações de ${title}`}
         className="w-full max-w-2xl max-h-[80vh] overflow-hidden rounded-3xl border border-slate-700 bg-slate-950 text-white shadow-2xl animate-in zoom-in-75 duration-300"
         onMouseDown={(event) => event.stopPropagation()}
       >
@@ -71,8 +76,8 @@ function DayMovementsDialog({ details, onClose }) {
               <CalendarDays className="h-5 w-5" />
             </div>
             <div>
-              <h3 className="text-lg font-black">{formattedDate}</h3>
-              <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Movimentações do dia</p>
+              <h3 className="text-lg font-black">{title}</h3>
+              <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">{subtitle}</p>
             </div>
           </div>
           <button
@@ -100,7 +105,7 @@ function DayMovementsDialog({ details, onClose }) {
           {details.loading ? (
             <div className="py-12 text-center text-sm text-slate-400">Carregando movimentações...</div>
           ) : details.transactions.length === 0 ? (
-            <div className="py-12 text-center text-sm text-slate-400">Nenhuma movimentação encontrada neste dia.</div>
+            <div className="py-12 text-center text-sm text-slate-400">{emptyMessage}</div>
           ) : (
             <div className="space-y-2">
               {details.transactions.map((transaction) => (
@@ -158,7 +163,7 @@ function GlobalPeriodFilter({ value, onChange }) {
 }
 
 function MainContent() {
-  // Navegação: 'overview' | 'cards' | 'savings' | 'transactions'
+  // Navegação: 'overview' | 'stats' | 'transactions'
   const [activeTab, setActiveTab] = useState('overview');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => localStorage.getItem('finance_sidebar_collapsed') === 'true');
 
@@ -167,6 +172,7 @@ function MainContent() {
   const [selectedType, setSelectedType] = useState('ALL');
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(0);
+  const [weeklyRangeMonths, setWeeklyRangeMonths] = useState(1);
 
   // Dados
   const [summary, setSummary] = useState(null);
@@ -201,6 +207,15 @@ function MainContent() {
     };
   }, [selectedPeriod]);
 
+  const toISODate = (date) => date.toISOString().slice(0, 10);
+
+  const getWeeklyDateRange = useCallback(() => {
+    const endDate = new Date();
+    const startDate = new Date();
+    startDate.setMonth(startDate.getMonth() - weeklyRangeMonths);
+    return { startDate: toISODate(startDate), endDate: toISODate(endDate) };
+  }, [weeklyRangeMonths]);
+
   const loadCategories = async () => {
     try {
       const data = await financeApi.getCategories();
@@ -228,14 +243,12 @@ function MainContent() {
         summaryRes,
         catRes,
         dailyRes,
-        weeklyRes,
         savingsRes,
         txRes,
       ] = await Promise.all([
         financeApi.getSummary(dashboardParams),
         financeApi.getByCategory('DESPESA', queryParams),
         financeApi.getDailyExpenses(dashboardParams),
-        financeApi.getWeeklyExpenses(queryParams),
         financeApi.getSavingsTrend(year),
         financeApi.getTransactions({
           page: currentPage,
@@ -252,7 +265,6 @@ function MainContent() {
       setSummary(summaryRes);
       setCategoryData(catRes || []);
       setDailyExpenses(dailyRes || []);
-      setWeeklyExpenses(weeklyRes || []);
       setSavingsTrend(savingsRes || []);
       setTransactions(txRes.content || []);
       setTotalElements(txRes.totalElements || 0);
@@ -264,6 +276,16 @@ function MainContent() {
     }
   }, [getDateRange, selectedPeriod, selectedType, searchTerm, currentPage, selectedCategoryId]);
 
+  const loadWeeklyExpenses = useCallback(async () => {
+    try {
+      const { startDate, endDate } = getWeeklyDateRange();
+      const weeklyRes = await financeApi.getWeeklyExpenses({ startDate, endDate });
+      setWeeklyExpenses(weeklyRes || []);
+    } catch (err) {
+      console.error("Erro ao carregar controle semanal:", err);
+    }
+  }, [getWeeklyDateRange]);
+
   useEffect(() => {
     loadCategories();
   }, []);
@@ -271,6 +293,10 @@ function MainContent() {
   useEffect(() => {
     loadData();
   }, [loadData]);
+
+  useEffect(() => {
+    loadWeeklyExpenses();
+  }, [loadWeeklyExpenses]);
 
   // Totais
   const totalSavedYear = React.useMemo(() => {
@@ -295,7 +321,7 @@ function MainContent() {
   };
 
   const openDayMovements = async (date) => {
-    setDayDetails({ date, transactions: [], loading: true });
+    setDayDetails({ mode: 'date', date, transactions: [], loading: true });
     try {
       const response = await financeApi.getTransactions({
         startDate: date,
@@ -310,10 +336,40 @@ function MainContent() {
         (!/RDB|INVESTIMENTO|CAIXINHA/i.test(transaction.categoryName || transaction.description || '') &&
           (!selectedCategoryId || transaction.categoryId === selectedCategoryId))
       );
-      setDayDetails({ date, transactions: transactionsForChart, loading: false });
+      setDayDetails({ mode: 'date', date, transactions: transactionsForChart, loading: false });
     } catch (error) {
       console.error('Erro ao carregar movimentações do dia:', error);
-      setDayDetails({ date, transactions: [], loading: false });
+      setDayDetails({ mode: 'date', date, transactions: [], loading: false });
+    }
+  };
+
+  const openWeekdayMovements = async (dayRow) => {
+    const label = dayRow?.dayName;
+    const dayOfWeek = dayRow?.dayOfWeek;
+    if (!label || !dayOfWeek) return;
+
+    setDayDetails({ mode: 'weekday', label, transactions: [], loading: true });
+    try {
+      const { startDate, endDate } = getWeeklyDateRange();
+      const response = await financeApi.getTransactions({
+        startDate,
+        endDate,
+        page: 0,
+        size: 1000,
+        sortBy: 'date',
+        direction: 'desc',
+      });
+      // Converte getDay() (0=Domingo..6=Sábado) para o padrão ISO usado pelo backend (1=Segunda..7=Domingo)
+      const transactionsForDay = (response.content || []).filter((transaction) => {
+        if (transaction.type !== 'DESPESA') return false;
+        const jsDay = new Date(`${transaction.date}T00:00:00`).getDay();
+        const isoDay = jsDay === 0 ? 7 : jsDay;
+        return isoDay === dayOfWeek;
+      });
+      setDayDetails({ mode: 'weekday', label, transactions: transactionsForDay, loading: false });
+    } catch (error) {
+      console.error('Erro ao carregar movimentações do dia da semana:', error);
+      setDayDetails({ mode: 'weekday', label, transactions: [], loading: false });
     }
   };
 
@@ -326,16 +382,10 @@ function MainContent() {
       active: activeTab === 'overview',
     },
     {
-      icon: <CreditCard size={20} />,
-      label: 'Cartão & Conta',
-      onClick: () => setActiveTab('cards'),
-      active: activeTab === 'cards',
-    },
-    {
-      icon: <PiggyBank size={20} />,
-      label: 'Caixinhas',
-      onClick: () => setActiveTab('savings'),
-      active: activeTab === 'savings',
+      icon: <BarChart3 size={20} />,
+      label: 'Estatísticas',
+      onClick: () => setActiveTab('stats'),
+      active: activeTab === 'stats',
     },
     {
       icon: <FileSpreadsheet size={20} />,
@@ -490,12 +540,12 @@ function MainContent() {
         )}
 
         {/* ========================================================= */}
-        {/* ABA 2: CARTÃO VS CONTA */}
+        {/* ABA 2: ESTATÍSTICAS */}
         {/* ========================================================= */}
-        {activeTab === 'cards' && (
+        {activeTab === 'stats' && (
           <div className="space-y-6 animate-in fade-in duration-200">
-            {/* 2 Métricas Comparativas */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* 3 Métricas Comparativas */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-purple-200/80 dark:border-purple-900/60 shadow-sm">
                 <div className="text-[11px] font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wider">
                   Fatura do Cartão de Crédito
@@ -513,38 +563,36 @@ function MainContent() {
                   {formatCurrency(totalAccountSpent)}
                 </div>
               </div>
-            </div>
 
-            {/* Gráfico 2: Controle Semanal */}
-            <WeeklyLineChart data={weeklyExpenses} />
-          </div>
-        )}
-
-        {/* ========================================================= */}
-        {/* ABA 3: CAIXINHAS */}
-        {/* ========================================================= */}
-        {activeTab === 'savings' && (
-          <div className="space-y-6 animate-in fade-in duration-200">
-            {/* Métrica de Dinheiro Guardado */}
-            <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-emerald-200/80 dark:border-emerald-900/60 shadow-sm flex items-center justify-between">
-              <div>
+              <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-emerald-200/80 dark:border-emerald-900/60 shadow-sm">
                 <div className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
-                  Total Guardado no Ano (Caixinhas / RDB)
+                  Total Guardado (Caixinhas / RDB)
                 </div>
                 <div className="text-2xl font-black text-emerald-600 dark:text-emerald-300 mt-1">
                   {formatCurrency(totalSavedYear)}
                 </div>
               </div>
-              <span className="text-xs text-slate-400">Patrimônio acumulado</span>
             </div>
 
-            {/* Gráfico 3: Comparativo Dinheiro Guardado */}
-            <SavingsTrendChart data={savingsTrend} />
+            {/* Controle Semanal + Caixinhas (lado a lado) */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 xl:gap-6 items-stretch">
+              <div className="lg:col-span-2 min-w-0">
+                <WeeklyLineChart
+                  data={weeklyExpenses}
+                  onDayClick={openWeekdayMovements}
+                  rangeMonths={weeklyRangeMonths}
+                  onRangeChange={setWeeklyRangeMonths}
+                />
+              </div>
+              <div className="min-w-0">
+                <SavingsTrendChart data={savingsTrend} compact />
+              </div>
+            </div>
           </div>
         )}
 
         {/* ========================================================= */}
-        {/* ABA 4: EXTRATO & LANÇAMENTOS */}
+        {/* ABA 3: EXTRATO & LANÇAMENTOS */}
         {/* ========================================================= */}
         {activeTab === 'transactions' && (
           <div className="space-y-4 animate-in fade-in duration-200">
@@ -607,6 +655,18 @@ function MainContent() {
           </p>
           <button type="button" onClick={() => setActiveTab('changelog')} className="rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 font-bold text-emerald-700 transition-colors hover:bg-emerald-100 dark:border-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-300 dark:hover:bg-emerald-900/60">v0.3.0</button>
           </div>
+          <p className="flex items-center gap-1.5">
+            <Github className="h-3.5 w-3.5" />
+            Desenvolvido por{' '}
+            <a
+              href="https://github.com/PedroHMachado-dev"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-full border border-slate-200 bg-white px-2.5 py-1 font-bold text-slate-700 transition-colors hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-emerald-800 dark:hover:bg-emerald-950/50 dark:hover:text-emerald-300"
+            >
+              PedroHMachado-dev
+            </a>
+          </p>
         </div>
       </footer>
 

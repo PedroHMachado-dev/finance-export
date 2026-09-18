@@ -56,7 +56,12 @@ const CustomWeeklyTooltip = ({ active, payload, label }) => {
   return null;
 };
 
-export function WeeklyLineChart({ data = [] }) {
+const RANGE_OPTIONS = [
+  { key: 1, label: "1 mês" },
+  { key: 3, label: "3 meses" },
+];
+
+export function WeeklyLineChart({ data = [], onDayClick, rangeMonths, onRangeChange }) {
   const [activeMetric, setActiveMetric] = React.useState("totalExpense");
 
   const totals = React.useMemo(() => {
@@ -82,14 +87,35 @@ export function WeeklyLineChart({ data = [] }) {
   return (
     <Card className="overflow-hidden border border-slate-200/80 dark:border-slate-800 shadow-sm">
       <CardHeader className="flex flex-col sm:flex-row items-stretch justify-between border-b border-slate-100 dark:border-slate-800 p-0">
-        <div className="flex flex-1 flex-col justify-center px-6 py-4">
-          <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-indigo-500" />
-            <CardTitle>Gráfico 2: Controle Semanal (Dias da Semana)</CardTitle>
+        <div className="flex flex-1 flex-col justify-center gap-2 px-6 py-4">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-indigo-500" />
+              <CardTitle>Controle Semanal (Dias da Semana)</CardTitle>
+            </div>
+            <CardDescription className="mt-1">
+              Distribuição de gastos de Segunda a Domingo. Clique em um dia para ver as movimentações.
+            </CardDescription>
           </div>
-          <CardDescription className="mt-1">
-            Distribuição de gastos de Segunda a Domingo. Passe o mouse nos pontos para ver os valores.
-          </CardDescription>
+
+          {onRangeChange && (
+            <div className="inline-flex self-start rounded-lg border border-slate-200 dark:border-slate-800 overflow-hidden">
+              {RANGE_OPTIONS.map(({ key, label }) => (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => onRangeChange(key)}
+                  className={`px-3 py-1.5 text-[11px] font-bold transition-colors ${
+                    rangeMonths === key
+                      ? "bg-indigo-500 text-white"
+                      : "bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800"
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Abas Alternáveis */}
@@ -132,6 +158,11 @@ export function WeeklyLineChart({ data = [] }) {
             <LineChart
               data={data}
               margin={{ left: -15, right: 15, top: 10, bottom: 0 }}
+              onClick={(chartState) => {
+                const payload = chartState?.activePayload?.[0]?.payload;
+                if (payload && onDayClick) onDayClick(payload);
+              }}
+              className={onDayClick ? "cursor-pointer" : ""}
             >
               <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="#94a3b8" strokeOpacity={0.2} />
               <XAxis
