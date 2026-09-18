@@ -8,6 +8,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -74,5 +75,13 @@ public class DashboardController {
             @RequestParam(defaultValue = "2026") int year
     ) {
         return ResponseEntity.ok(dashboardService.getSavingsTrend(year));
+    }
+
+    /**
+     * Total guardado em caixinhas / aplicações desde o início, usado nas Metas.
+     */
+    @GetMapping("/savings-total")
+    public ResponseEntity<BigDecimal> getSavingsTotal() {
+        return ResponseEntity.ok(dashboardService.getTotalSaved());
     }
 }

@@ -1,6 +1,6 @@
 # 💳 FinanceExport — Personal Finance & Statement Management System
 
-[![Version: 0.3.0](https://img.shields.io/badge/version-0.3.0-blue.svg)](CHANGELOG.md)
+[![Version: 0.4.0](https://img.shields.io/badge/version-0.4.0-blue.svg)](CHANGELOG.md)
 [![Java 17](https://img.shields.io/badge/Java-17-orange.svg)](https://adoptium.net/)
 [![Spring Boot 3](https://img.shields.io/badge/Spring%20Boot-3.2.5-brightgreen.svg)](https://spring.io/projects/spring-boot)
 [![React](https://img.shields.io/badge/React-18-blue.svg)](https://react.dev/)
