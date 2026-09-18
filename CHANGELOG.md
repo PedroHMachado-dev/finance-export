@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.4.0] - 2026-09-18
+
+### Added
+- **Financial Goals**: new "Metas" tab where you can create savings goals (e.g. "Trip", "New car") and track progress based on everything you've saved in your caixinhas so far. Edit or delete goals anytime.
+- **Statistics tab**: the old "Cartão & Conta" and "Caixinhas" tabs were merged into a single "Estatísticas" tab, making it easier to compare everything in one place.
+- **Weekly chart drill-down**: clicking a weekday on the Weekly Control chart shows every transaction made on that weekday (e.g. every Tuesday) within the selected period.
+- **Weekly chart period toggle**: choose between viewing the last 1 or 3 months on the Weekly Control chart.
+
+### Changed
+- **Caixinhas chart**: switched from a line chart to a dual bar chart (light green = saved this month, dark green = total saved so far).
+- **Overview**: added a "Guardado nas Caixinhas" card right next to the Net Balance card, showing your savings at a glance.
+- **Overview**: the "Receitas vs Despesas" and "Despesas por Categoria" charts now live together in a single card.
+- **Overview**: the period filter is now smaller and lives inside the charts card — changing it no longer affects the summary cards at the top.
+
+---
+
 ## [0.3.0] - 2026-09-05
 
 ### Added

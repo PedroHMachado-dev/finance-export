@@ -84,6 +84,12 @@ export const financeApi = {
     return response.data;
   },
 
+  // Total guardado em caixinhas / aplicações desde o início (usado nas Metas)
+  getSavingsTotal: async () => {
+    const response = await api.get('/dashboard/savings-total');
+    return response.data;
+  },
+
   // Categorias
   getCategories: async (type) => {
     const response = await api.get('/categories', {
@@ -94,6 +100,27 @@ export const financeApi = {
 
   createCategory: async (data) => {
     const response = await api.post('/categories', data);
+    return response.data;
+  },
+
+  // Metas
+  getGoals: async () => {
+    const response = await api.get('/goals');
+    return response.data;
+  },
+
+  createGoal: async (data) => {
+    const response = await api.post('/goals', data);
+    return response.data;
+  },
+
+  updateGoal: async (id, data) => {
+    const response = await api.put(`/goals/${id}`, data);
+    return response.data;
+  },
+
+  deleteGoal: async (id) => {
+    const response = await api.delete(`/goals/${id}`);
     return response.data;
   },
 };

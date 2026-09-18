@@ -311,6 +311,17 @@ public class DashboardService {
     }
 
     /**
+     * Total guardado em caixinhas / aplicações desde o início (sem recorte por ano),
+     * usado para acompanhar o progresso das metas.
+     */
+    public BigDecimal getTotalSaved() {
+        return transactionRepository.findAll().stream()
+                .filter(this::isSavingsTransaction)
+                .map(Transaction::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    /**
      * Identifica transações relacionadas ao Cartão de Crédito
      * (tanto itens da fatura quanto pagamentos de fatura feitos na conta)
      */

@@ -11,7 +11,7 @@
     </parent>
     <groupId>com.finance</groupId>
     <artifactId>finance-control</artifactId>
-    <version>0.3.0</version>
+    <version>0.4.0</version>
     <name>finance-control</name>
     <description>Sistema de Controle Financeiro com Importacao de Extratos CSV</description>
 

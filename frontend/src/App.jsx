@@ -4,6 +4,8 @@ import FilterBar from './components/FilterBar';
 import TransactionTable from './components/TransactionTable';
 import FileUploadModal from './components/FileUploadModal';
 import TransactionModal from './components/TransactionModal';
+import GoalModal from './components/GoalModal';
+import GoalsPanel from './components/GoalsPanel';
 import { MonthlyAreaChart } from './components/charts/MonthlyAreaChart';
 import { WeeklyLineChart } from './components/charts/WeeklyLineChart';
 import { SavingsTrendChart } from './components/charts/SavingsTrendChart';
@@ -32,6 +34,7 @@ import {
   X,
   CalendarRange,
   Github,
+  Target,
 } from 'lucide-react';
 import { formatCurrency } from './utils/formatters';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './components/ui/Select';
@@ -130,7 +133,7 @@ function DayMovementsDialog({ details, onClose }) {
   );
 }
 
-function GlobalPeriodFilter({ value, onChange }) {
+function ChartsPeriodFilter({ value, onChange }) {
   const labels = {
     ALL: 'Todo o período',
     '2026-09': 'Setembro / 2026',
@@ -141,15 +144,16 @@ function GlobalPeriodFilter({ value, onChange }) {
   };
 
   return (
-    <div className="flex min-w-[190px] items-center gap-2 rounded-2xl border border-slate-200/80 bg-white p-2 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400">
-        <CalendarRange className="h-4 w-4" />
-      </div>
+    <div className="flex items-center gap-2">
+      <span className="hidden sm:flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+        <CalendarRange className="h-3.5 w-3.5" />
+        Período dos gráficos
+      </span>
       <Select value={value} onValueChange={onChange}>
-        <SelectTrigger className="h-9 flex-1 border-0 bg-transparent px-2 shadow-none dark:bg-transparent" ariaLabel="Filtrar painel por período">
+        <SelectTrigger className="h-8 min-w-[150px] border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-2.5 text-xs shadow-none" ariaLabel="Filtrar gráficos por período">
           <SelectValue placeholder={labels[value]} />
         </SelectTrigger>
-        <SelectContent className="min-w-[170px]">
+        <SelectContent className="min-w-[160px]">
           <SelectItem value="ALL">Todo o período</SelectItem>
           <SelectItem value="2026-09">Setembro / 2026</SelectItem>
           <SelectItem value="2026-08">Agosto / 2026</SelectItem>
@@ -163,7 +167,7 @@ function GlobalPeriodFilter({ value, onChange }) {
 }
 
 function MainContent() {
-  // Navegação: 'overview' | 'stats' | 'transactions'
+  // Navegação: 'overview' | 'stats' | 'goals' | 'transactions'
   const [activeTab, setActiveTab] = useState('overview');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => localStorage.getItem('finance_sidebar_collapsed') === 'true');
 
@@ -186,12 +190,17 @@ function MainContent() {
   const [categories, setCategories] = useState([]);
   const [totalElements, setTotalElements] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
+  const [goals, setGoals] = useState([]);
+  const [totalSaved, setTotalSaved] = useState(0);
+  const [goalsLoading, setGoalsLoading] = useState(false);
 
   // Modais e Loading
   const [loading, setLoading] = useState(false);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [isTransactionModalOpen, setIsTransactionModalOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState(null);
+  const [isGoalModalOpen, setIsGoalModalOpen] = useState(false);
+  const [editingGoal, setEditingGoal] = useState(null);
 
   const getDateRange = useCallback(() => {
     if (!selectedPeriod || selectedPeriod === 'ALL') {
@@ -246,7 +255,9 @@ function MainContent() {
         savingsRes,
         txRes,
       ] = await Promise.all([
-        financeApi.getSummary(dashboardParams),
+        // Situação geral (cards do topo): sempre "todo o período", não sofre efeito
+        // do filtro de período usado nos gráficos mais abaixo.
+        financeApi.getSummary({}),
         financeApi.getByCategory('DESPESA', queryParams),
         financeApi.getDailyExpenses(dashboardParams),
         financeApi.getSavingsTrend(year),
@@ -286,6 +297,22 @@ function MainContent() {
     }
   }, [getWeeklyDateRange]);
 
+  const loadGoals = useCallback(async () => {
+    setGoalsLoading(true);
+    try {
+      const [goalsRes, totalRes] = await Promise.all([
+        financeApi.getGoals(),
+        financeApi.getSavingsTotal(),
+      ]);
+      setGoals(goalsRes || []);
+      setTotalSaved(totalRes || 0);
+    } catch (err) {
+      console.error("Erro ao carregar metas:", err);
+    } finally {
+      setGoalsLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     loadCategories();
   }, []);
@@ -297,6 +324,10 @@ function MainContent() {
   useEffect(() => {
     loadWeeklyExpenses();
   }, [loadWeeklyExpenses]);
+
+  useEffect(() => {
+    loadGoals();
+  }, [loadGoals]);
 
   // Totais
   const totalSavedYear = React.useMemo(() => {
@@ -373,6 +404,13 @@ function MainContent() {
     }
   };
 
+  const handleDeleteGoal = async (goal) => {
+    if (window.confirm(`Deseja excluir a meta "${goal.name}"?`)) {
+      await financeApi.deleteGoal(goal.id);
+      loadGoals();
+    }
+  };
+
   // Itens da barra flutuante Dock (React Bits)
   const navigationItems = [
     {
@@ -386,6 +424,12 @@ function MainContent() {
       label: 'Estatísticas',
       onClick: () => setActiveTab('stats'),
       active: activeTab === 'stats',
+    },
+    {
+      icon: <Target size={20} />,
+      label: 'Metas',
+      onClick: () => setActiveTab('goals'),
+      active: activeTab === 'goals',
     },
     {
       icon: <FileSpreadsheet size={20} />,
@@ -447,94 +491,99 @@ function MainContent() {
         {/* ========================================================= */}
         {activeTab === 'overview' && (
           <div className="space-y-6 animate-in fade-in duration-200">
-            <div className="grid grid-cols-1 gap-3 xl:grid-cols-[minmax(0,1fr)_auto]">
-              <SummaryCards summary={summary} loading={loading} />
-              <GlobalPeriodFilter
-                value={selectedPeriod}
-                onChange={(period) => {
-                  setSelectedPeriod(period);
-                  setCurrentPage(0);
-                }}
-              />
-            </div>
+            <SummaryCards summary={summary} totalSaved={totalSaved} loading={loading} />
 
-            <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,2fr)_minmax(320px,1fr)] gap-4 xl:gap-6 items-stretch">
-              <div className="min-w-0">
-                <MonthlyAreaChart
-                  data={dailyExpenses}
-                  selectedCategoryName={selectedCategory?.categoryName}
-                  onDayClick={openDayMovements}
+            <div className="rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm overflow-hidden">
+              {/* Filtro compacto: afeta somente os gráficos deste card, não os cards de resumo acima */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-end gap-2 border-b border-slate-100 dark:border-slate-800 px-4 sm:px-5 py-3 bg-slate-50/50 dark:bg-slate-900/50">
+                <ChartsPeriodFilter
+                  value={selectedPeriod}
+                  onChange={(period) => {
+                    setSelectedPeriod(period);
+                    setCurrentPage(0);
+                  }}
                 />
               </div>
 
-              {categoryData.length > 0 && (
-              <div className="bg-white dark:bg-slate-900 p-4 xl:p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                    Despesas por Categoria
-                  </div>
-                  {selectedCategory && (
-                    <button type="button" onClick={() => setSelectedCategoryId(null)} className="text-xs font-medium text-emerald-500 hover:text-emerald-400">
-                      Limpar: {selectedCategory.categoryName}
-                    </button>
-                  )}
+              <div className="flex flex-col lg:flex-row divide-y lg:divide-y-0 lg:divide-x divide-slate-100 dark:divide-slate-800">
+                <div className="flex-[2] min-w-0">
+                  <MonthlyAreaChart
+                    bare
+                    data={dailyExpenses}
+                    selectedCategoryName={selectedCategory?.categoryName}
+                    onDayClick={openDayMovements}
+                  />
                 </div>
 
-                <div className="grid grid-cols-1 gap-3 items-center flex-1 min-h-0">
-                  <div className="h-[clamp(16rem,32vh,26rem)]">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie
-                          data={categoryData}
-                          cx="50%"
-                          cy="50%"
-                          innerRadius="46%"
-                          outerRadius="86%"
-                          paddingAngle={3}
-                          dataKey="totalAmount"
-                          nameKey="categoryName"
-                          onClick={(entry) => toggleCategory(entry.categoryId ?? entry.payload?.categoryId)}
-                          className="cursor-pointer outline-none"
+                {categoryData.length > 0 && (
+                <div className="flex-1 min-w-0 p-4 xl:p-5 flex flex-col">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                      Despesas por Categoria
+                    </div>
+                    {selectedCategory && (
+                      <button type="button" onClick={() => setSelectedCategoryId(null)} className="text-xs font-medium text-emerald-500 hover:text-emerald-400">
+                        Limpar: {selectedCategory.categoryName}
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-3 items-center flex-1 min-h-0">
+                    <div className="h-[clamp(16rem,32vh,26rem)]">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie
+                            data={categoryData}
+                            cx="50%"
+                            cy="50%"
+                            innerRadius="46%"
+                            outerRadius="86%"
+                            paddingAngle={3}
+                            dataKey="totalAmount"
+                            nameKey="categoryName"
+                            onClick={(entry) => toggleCategory(entry.categoryId ?? entry.payload?.categoryId)}
+                            className="cursor-pointer outline-none"
+                          >
+                            {categoryData.map((entry, index) => (
+                              <Cell
+                                key={`cell-${index}`}
+                                fill={entry.categoryColor || DEFAULT_COLORS[index % DEFAULT_COLORS.length]}
+                                opacity={!selectedCategoryId || selectedCategoryId === entry.categoryId ? 1 : 0.25}
+                                stroke={selectedCategoryId === entry.categoryId ? '#ffffff' : 'transparent'}
+                                strokeWidth={selectedCategoryId === entry.categoryId ? 3 : 0}
+                              />
+                            ))}
+                          </Pie>
+                          <Tooltip content={<CustomPieTooltip />} />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </div>
+
+                    <div className="space-y-2 max-h-[clamp(14rem,30vh,24rem)] overflow-y-auto pr-1">
+                      {categoryData.slice(0, 5).map((cat, idx) => (
+                        <div
+                          key={idx}
+                          onClick={() => toggleCategory(cat.categoryId)}
+                          className={`flex items-center justify-between p-2 rounded-xl border text-xs cursor-pointer transition-opacity ${selectedCategoryId === cat.categoryId ? 'bg-slate-100 dark:bg-slate-700 border-emerald-500/60' : 'bg-slate-50 dark:bg-slate-800/50 border-slate-100 dark:border-slate-800'} ${selectedCategoryId && selectedCategoryId !== cat.categoryId ? 'opacity-40' : ''}`}
                         >
-                          {categoryData.map((entry, index) => (
-                            <Cell
-                              key={`cell-${index}`}
-                              fill={entry.categoryColor || DEFAULT_COLORS[index % DEFAULT_COLORS.length]}
-                              opacity={!selectedCategoryId || selectedCategoryId === entry.categoryId ? 1 : 0.25}
-                              stroke={selectedCategoryId === entry.categoryId ? '#ffffff' : 'transparent'}
-                              strokeWidth={selectedCategoryId === entry.categoryId ? 3 : 0}
+                          <div className="flex items-center space-x-2 truncate">
+                            <span
+                              className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                              style={{ backgroundColor: cat.categoryColor || DEFAULT_COLORS[idx % DEFAULT_COLORS.length] }}
                             />
-                          ))}
-                        </Pie>
-                        <Tooltip content={<CustomPieTooltip />} />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  </div>
-
-                  <div className="space-y-2 max-h-[clamp(14rem,30vh,24rem)] overflow-y-auto pr-1">
-                    {categoryData.slice(0, 5).map((cat, idx) => (
-                      <div
-                        key={idx}
-                        onClick={() => toggleCategory(cat.categoryId)}
-                        className={`flex items-center justify-between p-2 rounded-xl border text-xs cursor-pointer transition-opacity ${selectedCategoryId === cat.categoryId ? 'bg-slate-100 dark:bg-slate-700 border-emerald-500/60' : 'bg-slate-50 dark:bg-slate-800/50 border-slate-100 dark:border-slate-800'} ${selectedCategoryId && selectedCategoryId !== cat.categoryId ? 'opacity-40' : ''}`}
-                      >
-                        <div className="flex items-center space-x-2 truncate">
-                          <span
-                            className="w-2.5 h-2.5 rounded-full flex-shrink-0"
-                            style={{ backgroundColor: cat.categoryColor || DEFAULT_COLORS[idx % DEFAULT_COLORS.length] }}
-                          />
-                          <span className="font-semibold truncate">{cat.categoryName}</span>
+                            <span className="font-semibold truncate">{cat.categoryName}</span>
+                          </div>
+                          <div className="flex items-center space-x-2 flex-shrink-0">
+                            <span className="font-bold">{formatCurrency(cat.totalAmount)}</span>
+                            <span className="text-slate-400">({cat.percentage.toFixed(0)}%)</span>
+                          </div>
                         </div>
-                        <div className="flex items-center space-x-2 flex-shrink-0">
-                          <span className="font-bold">{formatCurrency(cat.totalAmount)}</span>
-                          <span className="text-slate-400">({cat.percentage.toFixed(0)}%)</span>
-                        </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
                 </div>
+                )}
               </div>
-              )}
             </div>
           </div>
         )}
@@ -592,7 +641,29 @@ function MainContent() {
         )}
 
         {/* ========================================================= */}
-        {/* ABA 3: EXTRATO & LANÇAMENTOS */}
+        {/* ABA 3: METAS */}
+        {/* ========================================================= */}
+        {activeTab === 'goals' && (
+          <div className="animate-in fade-in duration-200">
+            <GoalsPanel
+              goals={goals}
+              totalSaved={totalSaved}
+              loading={goalsLoading}
+              onAdd={() => {
+                setEditingGoal(null);
+                setIsGoalModalOpen(true);
+              }}
+              onEdit={(goal) => {
+                setEditingGoal(goal);
+                setIsGoalModalOpen(true);
+              }}
+              onDelete={handleDeleteGoal}
+            />
+          </div>
+        )}
+
+        {/* ========================================================= */}
+        {/* ABA 4: EXTRATO & LANÇAMENTOS */}
         {/* ========================================================= */}
         {activeTab === 'transactions' && (
           <div className="space-y-4 animate-in fade-in duration-200">
@@ -653,7 +724,7 @@ function MainContent() {
             <span className="font-bold text-slate-700 dark:text-slate-200">FinanceExport</span>
             {' '}· © {new Date().getFullYear()}
           </p>
-          <button type="button" onClick={() => setActiveTab('changelog')} className="rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 font-bold text-emerald-700 transition-colors hover:bg-emerald-100 dark:border-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-300 dark:hover:bg-emerald-900/60">v0.3.0</button>
+          <button type="button" onClick={() => setActiveTab('changelog')} className="rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 font-bold text-emerald-700 transition-colors hover:bg-emerald-100 dark:border-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-300 dark:hover:bg-emerald-900/60">v0.4.0</button>
           </div>
           <p className="flex items-center gap-1.5">
             <Github className="h-3.5 w-3.5" />
@@ -686,6 +757,13 @@ function MainContent() {
         onSaveSuccess={loadData}
         editingTransaction={editingTransaction}
         categories={categories}
+      />
+
+      <GoalModal
+        isOpen={isGoalModalOpen}
+        onClose={() => setIsGoalModalOpen(false)}
+        onSaveSuccess={loadGoals}
+        editingGoal={editingGoal}
       />
 
       <DayMovementsDialog details={dayDetails} onClose={() => setDayDetails(null)} />

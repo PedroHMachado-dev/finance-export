@@ -54,15 +54,18 @@ const CustomAreaTooltip = ({ active, payload, label }) => {
   return null;
 };
 
-export function MonthlyAreaChart({ data = [], selectedCategoryName = null, onDayClick }) {
+export function MonthlyAreaChart({ data = [], selectedCategoryName = null, onDayClick, bare = false }) {
   const totals = React.useMemo(() => {
     const totalExp = data.reduce((acc, curr) => acc + (curr.totalExpense || 0), 0);
     const totalInc = data.reduce((acc, curr) => acc + (curr.income || 0), 0);
     return { totalExp, totalInc };
   }, [data]);
 
+  const Wrapper = bare ? React.Fragment : Card;
+  const wrapperProps = bare ? {} : { className: "overflow-hidden border border-slate-200/80 dark:border-slate-800 shadow-sm" };
+
   return (
-    <Card className="overflow-hidden border border-slate-200/80 dark:border-slate-800 shadow-sm">
+    <Wrapper {...wrapperProps}>
       <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800/80 py-4 px-6 bg-slate-50/50 dark:bg-slate-900/50">
         <div>
           <div className="flex items-center gap-2">
@@ -170,6 +173,6 @@ export function MonthlyAreaChart({ data = [], selectedCategoryName = null, onDay
           {/* Total Saídas */}
         </div>
       </CardContent>
-    </Card>
+    </Wrapper>
   );
 }
